@@ -14,7 +14,30 @@ SpectralDisplay::~SpectralDisplay() {}
 
 void SpectralDisplay::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::black);
+    auto bg = findColour(juce::ResizableWindow::backgroundColourId);
+    auto area = getLocalBounds().toFloat();
+
+    // Subtle drop shadow behind the card
+    juce::Path shadow; shadow.addRoundedRectangle(area.reduced(2.0f).translated(0.0f, 2.0f), 10.0f);
+    g.setColour(juce::Colours::black.withAlpha(0.20f));
+    g.fillPath(shadow);
+
+    // Card background with gentle gradient
+    g.setGradientFill(juce::ColourGradient(bg.darker(0.15f), area.getX(), area.getY(),
+                                           bg.darker(0.10f), area.getX(), area.getBottom(), false));
+    g.fillRoundedRectangle(area.reduced(2.0f), 10.0f);
+    g.setColour(juce::Colour(0x22FFFFFF));
+    g.drawRoundedRectangle(area.reduced(2.0f), 10.0f, 1.0f);
+
+    // Draw faint grid to aid reading
+    g.setColour(juce::Colours::white.withAlpha(0.06f));
+    const float gridX = 60.0f, gridY = 40.0f;
+    for (float x = area.getX(); x < area.getRight(); x += gridX)
+        g.drawVerticalLine((int) x, area.getY()+4.0f, area.getBottom()-4.0f);
+    for (float y = area.getY(); y < area.getBottom(); y += gridY)
+        g.drawHorizontalLine((int) y, area.getX()+4.0f, area.getRight()-4.0f);
+
+    // Content
     switch (currentMode)
     {
         case SPECTROGRAM:     drawSpectrogram(g); break;
@@ -101,7 +124,11 @@ void SpectralDisplay::parameterChanged(const juce::String& parameterID, float ne
 
 void SpectralDisplay::drawSpectrogram(juce::Graphics& g)
 {
-    g.drawImage(spectrogramImage, getLocalBounds().toFloat());
+    auto area = getLocalBounds().toFloat().reduced(6.0f);
+    juce::Graphics::ScopedSaveState s(g);
+    juce::Path clip; clip.addRoundedRectangle(area, 8.0f);
+    g.reduceClipRegion(clip);
+    g.drawImage(spectrogramImage, area);
 }
 
 void SpectralDisplay::drawWaveform(juce::Graphics& g)
@@ -175,6 +202,8 @@ void SpectralDisplay::updateSpectrogram()
             const float t = juce::jlimit(0.0f, 1.0f, v * 0.05f);
             juce::Colour c = colorGradient.getColourAtPosition(t);
             auto existing = data.getPixelColour(x, y).withAlpha(decayRate);
+            // Slight brightening for clearer highlights
+            if (t > 0.85f) c = c.brighter(0.10f);
             data.setPixelColour(x, y, c.overlaidWith(existing));
         }
     }
