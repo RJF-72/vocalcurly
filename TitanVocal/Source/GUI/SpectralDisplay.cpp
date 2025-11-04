@@ -1,4 +1,4 @@
-// C:/Vocal Plugin/VocalCraftQuantum/Source/GUI/SpectralDisplay.cpp
+// C:/Vocal Plugin/TitanVocal/Source/GUI/SpectralDisplay.cpp
 #include "SpectralDisplay.h"
 
 SpectralDisplay::SpectralDisplay(SpectralAnalyzer& analyzer, juce::AudioProcessorValueTreeState& apvts)

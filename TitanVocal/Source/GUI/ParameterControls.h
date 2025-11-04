@@ -1,4 +1,4 @@
-// C:/Vocal Plugin/VocalCraftQuantum/Source/GUI/ParameterControls.h
+// C:/Vocal Plugin/TitanVocal/Source/GUI/ParameterControls.h
 #pragma once
 
 #include <JuceHeader.h>

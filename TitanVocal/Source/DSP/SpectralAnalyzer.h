@@ -1,4 +1,4 @@
-// C:/Vocal Plugin/VocalCraftQuantum/Source/DSP/SpectralAnalyzer.h
+// C:/Vocal Plugin/TitanVocal/Source/DSP/SpectralAnalyzer.h
 #pragma once
 
 #include <JuceHeader.h>
