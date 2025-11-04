@@ -49,6 +49,11 @@ Presets
 - Save preset: Use the "Save" button in the editor to write APVTS state to an XML file.
 - Load preset: Use the "Load" button to restore APVTS state from XML.
 
+License and copyright
+- License: Proprietary and very strict (see LICENSE.txt). Non-transferable, non-sublicensable, revocable; no redistribution, no derivative works, no reverse engineering, no public benchmarking, no AI training on code or outputs, and no commercial use without written permission.
+- Copyright: © 2025 Ray Flanary and Joni Marie Flanary. All rights reserved. See COPYRIGHT.txt.
+- Third-party licensing: This project depends on JUCE, LibTorch/PyTorch, and ONNX Runtime. You must comply with their respective licenses. Proprietary distribution with JUCE requires a commercial JUCE license; GPL builds of JUCE require GPL-compliant distribution. See NOTICE.txt.
+
 Training script
 - train_vocal_model.py contains a complete pipeline for dataset loading, model definition, and training with checkpoints.
 

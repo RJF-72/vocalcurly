@@ -1,0 +1,7 @@
+Copyright Notice
+
+Copyright (c) 2025 Ray Flanary and Joni Marie Flanary. All rights reserved.
+
+This repository and its contents, including source code, assets, documentation, and binaries, are proprietary and confidential. Unauthorized copying, distribution, modification, publication, reverse engineering, or use for any commercial purpose is strictly prohibited without prior written permission from the copyright holders.
+
+Use is subject to the accompanying License (LICENSE.txt).
