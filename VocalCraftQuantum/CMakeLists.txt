@@ -22,6 +22,7 @@ set(SRC
     Source/Plugin/PluginProcessor.cpp
     Source/GUI/PluginEditor.cpp
     Source/GUI/PluginEditor.h
+    Source/GUI/SpectralDisplay.cpp
     Source/GUI/SpectralDisplay.h
     Source/GUI/ParameterControls.h
     Source/GUI/ParameterControls.cpp
