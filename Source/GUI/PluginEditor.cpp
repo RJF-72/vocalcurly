@@ -136,6 +136,75 @@ private:
     }
 };
 
+// Palette switcher toolbar item: shows swatches and opens a menu to select
+class PaletteToolbarItem : public juce::ToolbarItemComponent {
+public:
+    PaletteToolbarItem(int itemId, std::function<void(int)> onSelect)
+        : juce::ToolbarItemComponent(itemId, "Palette", true, false), selectCallback(std::move(onSelect)) {}
+
+    bool getToolbarItemSizes(int toolbarDepth, bool isVertical, int& preferredSize,
+                             int& minSize, int& maxSize) override
+    {
+        juce::ignoreUnused(isVertical);
+        const int h = juce::jmax(28, toolbarDepth - 6);
+        preferredSize = h + 80;
+        minSize = h + 60;
+        maxSize = h + 100;
+        return true;
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        auto bounds = getLocalBounds().toFloat();
+        auto bg = findColour(juce::Toolbar::backgroundColourId);
+        g.setColour(bg.darker(0.10f));
+        g.fillRoundedRectangle(bounds, 6.0f);
+        if (isMouseButtonDown())
+            g.setColour(juce::Colours::white.withAlpha(0.18f));
+        else if (isMouseOver(true))
+            g.setColour(juce::Colours::white.withAlpha(0.10f));
+        if (isMouseOver(true) || isMouseButtonDown())
+            g.fillRoundedRectangle(bounds, 6.0f);
+
+        auto swArea = bounds.reduced(8.0f);
+        auto swW = (swArea.getWidth() - 24.0f) / 3.0f;
+        auto swH = swArea.getHeight() - 12.0f;
+        juce::Rectangle<float> s1(swArea.getX(), swArea.getY()+6.0f, swW, swH);
+        juce::Rectangle<float> s2 = s1.translated(swW + 12.0f, 0.0f);
+        juce::Rectangle<float> s3 = s2.translated(swW + 12.0f, 0.0f);
+
+        // Classic
+        g.setGradientFill(juce::ColourGradient(juce::Colours::blue, s1.getX(), s1.getY(),
+                                               juce::Colours::red, s1.getRight(), s1.getBottom(), false));
+        g.fillRoundedRectangle(s1, 4.0f);
+        // Fire
+        g.setGradientFill(juce::ColourGradient(juce::Colours::black, s2.getX(), s2.getY(),
+                                               juce::Colours::yellow, s2.getRight(), s2.getBottom(), false));
+        g.fillRoundedRectangle(s2, 4.0f);
+        // Viridis-ish
+        g.setGradientFill(juce::ColourGradient(juce::Colours::blue, s3.getX(), s3.getY(),
+                                               juce::Colours::yellow, s3.getRight(), s3.getBottom(), false));
+        g.fillRoundedRectangle(s3, 4.0f);
+
+        g.setColour(juce::Colours::whitesmoke);
+        g.drawText("Palette", bounds.reduced(6.0f), juce::Justification::topLeft);
+    }
+
+    void mouseUp(const juce::MouseEvent&) override
+    {
+        juce::PopupMenu menu;
+        menu.addItem(1, "Classic");
+        menu.addItem(2, "Fire");
+        menu.addItem(3, "Viridis");
+        menu.showMenuAsync(juce::PopupMenu::Options(), [this](int result){ if (result > 0 && selectCallback) selectCallback(result); });
+    }
+
+    void resized() override {}
+
+private:
+    std::function<void(int)> selectCallback;
+};
+
 class TitanToolbarFactory : public juce::ToolbarItemFactory {
 public:
     explicit TitanToolbarFactory(TitanVocalEditor& ed) : editor(ed) {}
@@ -143,6 +212,7 @@ public:
     void getAllItemIds(juce::Array<int>& ids) override
     {
         ids.add(TitanVocalEditor::ToolbarIDs::tbAdvanced);
+        ids.add(TitanVocalEditor::ToolbarIDs::tbPalette);
         ids.add(TitanVocalEditor::ToolbarIDs::tbLoadPreset);
         ids.add(TitanVocalEditor::ToolbarIDs::tbSavePreset);
         ids.add(TitanVocalEditor::ToolbarIDs::tbLoadDefault);
@@ -158,6 +228,8 @@ public:
         {
             case IDs::tbAdvanced:
                 return new IconToolbarItem(itemId, "Advanced", [this]{ editor.toggleAdvancedMode(true); });
+            case IDs::tbPalette:
+                return new PaletteToolbarItem(itemId, [this](int preset){ editor.setSpectrogramPalettePreset(preset); });
             case IDs::tbLoadPreset:
                 return new IconToolbarItem(itemId, "Load", [this]{ editor.loadPreset(); });
             case IDs::tbSavePreset:
@@ -490,6 +562,19 @@ void TitanVocalEditor::loadDefaultPreset()
 void TitanVocalEditor::setStatus(const juce::String& text)
 {
     statusBar.setText(text, juce::dontSendNotification);
+}
+
+void TitanVocalEditor::setSpectrogramPalettePreset(int presetId)
+{
+    if (spectralDisplay)
+        spectralDisplay->setColorSchemePreset(presetId);
+    switch (presetId)
+    {
+        case 1: setStatus("Palette: Classic"); break;
+        case 2: setStatus("Palette: Fire"); break;
+        case 3: setStatus("Palette: Viridis"); break;
+        default: setStatus("Palette: Custom"); break;
+    }
 }
 
 void TitanVocalEditor::populateToolbar()

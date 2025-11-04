@@ -37,6 +37,8 @@ public:
 
     void showSection(UISection section);
     void toggleAdvancedMode(bool advanced);
+    // Public helper to update spectrogram palette from toolbar/menu
+    void setSpectrogramPalettePreset(int presetId);
 
 private:
     TitanVocalProcessor& audioProcessor;
@@ -45,7 +47,7 @@ private:
     // Toolbar
     juce::Toolbar toolbar;
     struct ToolbarIDs {
-        enum Ids { tbAdvanced = 1, tbLoadPreset, tbSavePreset, tbLoadDefault, tbAIAssistant };
+        enum Ids { tbAdvanced = 1, tbPalette, tbLoadPreset, tbSavePreset, tbLoadDefault, tbAIAssistant };
     };
 
     // Main components
