@@ -27,22 +27,12 @@ TitanVocalEditor::TitanVocalEditor(TitanVocalProcessor& p)
     addAndMakeVisible(displayModeBox);
     initializeDisplayModeSelector();
 
-    // Buttons
-    addAndMakeVisible(advancedModeButton);
-    advancedModeButton.setButtonText("Advanced");
-    advancedModeButton.addListener(this);
+    // Top toolbar (items to be populated progressively)
+    addAndMakeVisible(toolbar);
+    populateToolbar();
 
+    // Preset selector (kept outside toolbar for now)
     addAndMakeVisible(presetSelector);
-    addAndMakeVisible(loadPresetButton);
-    addAndMakeVisible(savePresetButton);
-    loadPresetButton.setButtonText("Load");
-    savePresetButton.setButtonText("Save");
-    loadPresetButton.addListener(this);
-    savePresetButton.addListener(this);
-
-    addAndMakeVisible(aiAssistantButton);
-    aiAssistantButton.setButtonText("AI Assistant");
-    aiAssistantButton.addListener(this);
 
     // AI enabled toggle
     addAndMakeVisible(aiEnabledToggle);
@@ -58,10 +48,7 @@ TitanVocalEditor::TitanVocalEditor(TitanVocalProcessor& p)
     aiModelBox.addItem("Timing Corr.", 6);
     aiModelAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(audioProcessor.apvts, "aiModelType", aiModelBox);
 
-    // Load Default Preset button
-    addAndMakeVisible(loadDefaultPresetButton);
-    loadDefaultPresetButton.setButtonText("Load Default");
-    loadDefaultPresetButton.addListener(this);
+    // Default preset will be accessible via toolbar (coming soon)
 
     // Meters
     addAndMakeVisible(inputMeter);
@@ -99,16 +86,16 @@ void TitanVocalEditor::resized()
     auto status = area.removeFromBottom(24);
     statusBar.setBounds(status);
 
-    auto topBar = area.removeFromTop(36);
-    advancedModeButton.setBounds(topBar.removeFromLeft(100));
-    displayModeBox.setBounds(topBar.removeFromLeft(140));
-    presetSelector.setBounds(topBar.removeFromLeft(200));
-    loadPresetButton.setBounds(topBar.removeFromLeft(80));
-    savePresetButton.setBounds(topBar.removeFromLeft(80));
-    aiAssistantButton.setBounds(topBar.removeFromLeft(120));
-    aiEnabledToggle.setBounds(topBar.removeFromLeft(60));
-    aiModelBox.setBounds(topBar.removeFromLeft(120));
-    loadDefaultPresetButton.setBounds(topBar.removeFromLeft(120));
+    // Toolbar row
+    auto toolbarRow = area.removeFromTop(36);
+    toolbar.setBounds(toolbarRow);
+
+    // Controls row under toolbar
+    auto controlsRow = area.removeFromTop(36);
+    displayModeBox.setBounds(controlsRow.removeFromLeft(140));
+    presetSelector.setBounds(controlsRow.removeFromLeft(220));
+    aiEnabledToggle.setBounds(controlsRow.removeFromLeft(70));
+    aiModelBox.setBounds(controlsRow.removeFromLeft(140));
 
     auto meterArea = area.removeFromRight(80);
     inputLabel.setBounds(meterArea.removeFromTop(20));
@@ -139,26 +126,7 @@ void TitanVocalEditor::timerCallback()
 
 void TitanVocalEditor::buttonClicked(juce::Button* button)
 {
-    if (button == &advancedModeButton)
-    {
-        toggleAdvancedMode(true);
-    }
-    else if (button == &loadPresetButton)
-    {
-        loadPreset();
-    }
-    else if (button == &savePresetButton)
-    {
-        savePreset();
-    }
-    else if (button == &loadDefaultPresetButton)
-    {
-        loadDefaultPreset();
-    }
-    else if (button == &aiAssistantButton)
-    {
-        showAIAssistant();
-    }
+    juce::ignoreUnused(button);
 }
 
 void TitanVocalEditor::showSection(UISection)
@@ -342,4 +310,10 @@ void TitanVocalEditor::loadDefaultPreset()
 void TitanVocalEditor::setStatus(const juce::String& text)
 {
     statusBar.setText(text, juce::dontSendNotification);
+}
+
+void TitanVocalEditor::populateToolbar()
+{
+    // Placeholder: populate with actionable items in subsequent steps
+    toolbar.clear();
 }

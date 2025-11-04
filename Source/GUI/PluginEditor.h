@@ -42,6 +42,12 @@ private:
     TitanVocalProcessor& audioProcessor;
     TitanDarkLookAndFeel darkTheme;
 
+    // Toolbar
+    juce::Toolbar toolbar;
+    struct ToolbarIDs {
+        enum Ids { tbAdvanced = 1, tbLoadPreset, tbSavePreset, tbLoadDefault, tbAIAssistant };
+    };
+
     // Main components
     std::unique_ptr<SpectralDisplay> spectralDisplay;
     std::unique_ptr<ParameterControls> parameterControls;
@@ -64,11 +70,8 @@ private:
     juce::GroupComponent pitchGroup, formantGroup, timeGroup, creativeGroup, outputGroup;
 
     // Interactive elements
-    juce::TextButton advancedModeButton;
+    // Preset selector remains available (not in toolbar yet)
     juce::ComboBox presetSelector;
-    juce::TextButton loadPresetButton, savePresetButton;
-    juce::TextButton loadDefaultPresetButton;
-    juce::TextButton aiAssistantButton;
 
     // Metering
     juce::Slider inputMeter, outputMeter;
@@ -90,6 +93,7 @@ private:
     void loadDefaultPreset();
     void showAIAssistant();
     void setStatus(const juce::String& text);
+    void populateToolbar();
 
     // Helpers
     void initializeDisplayModeSelector();
