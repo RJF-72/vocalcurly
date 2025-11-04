@@ -40,6 +40,33 @@ void SpectralDisplay::setColorScheme(const juce::ColourGradient& gradient)
     colorGradient = gradient;
 }
 
+void SpectralDisplay::setColorSchemePreset(int presetId)
+{
+    // 1: Classic (blue->red), 2: Fire (black->red->yellow), 3: Viridis-like (blue->green->yellow)
+    switch (presetId)
+    {
+        case 2:
+        {
+            colorGradient = juce::ColourGradient(juce::Colours::black, 0, 0, juce::Colours::yellow, 100, 0, false);
+            colorGradient.addColour(0.3, juce::Colours::darkred);
+            colorGradient.addColour(0.6, juce::Colours::red);
+            break;
+        }
+        case 3:
+        {
+            colorGradient = juce::ColourGradient(juce::Colours::blue, 0, 0, juce::Colours::yellow, 100, 0, false);
+            colorGradient.addColour(0.5, juce::Colours::green);
+            break;
+        }
+        case 1:
+        default:
+        {
+            colorGradient = juce::ColourGradient(juce::Colours::blue, 0, 0, juce::Colours::red, 100, 0, false);
+            break;
+        }
+    }
+}
+
 void SpectralDisplay::setDecayRate(float decay)
 {
     decayRate = juce::jlimit(0.0f, 1.0f, decay);
@@ -140,11 +167,13 @@ void SpectralDisplay::updateSpectrogram()
     int x = spectrogramImage.getWidth() - 1;
     {
         juce::Image::BitmapData data(spectrogramImage, juce::Image::BitmapData::readWrite);
-        for (int y = 0; y < spectrogramImage.getHeight(); ++y)
+        const int h = spectrogramImage.getHeight();
+        for (int y = 0; y < h; ++y)
         {
-            int bin = juce::jmap(y, 0, spectrogramImage.getHeight() - 1, (int)mags.size() - 1, 0);
-            float v = std::log1p(mags[(size_t)bin]);
-            juce::Colour c = juce::Colour::fromHSV(juce::jlimit(0.0f, 1.0f, v * 0.05f), 0.9f, 0.9f, 1.0f);
+            const int bin = juce::jmap(y, 0, h - 1, (int)mags.size() - 1, 0);
+            const float v = std::log1p(mags[(size_t)bin]);
+            const float t = juce::jlimit(0.0f, 1.0f, v * 0.05f);
+            juce::Colour c = colorGradient.getColourAtPosition(t);
             auto existing = data.getPixelColour(x, y).withAlpha(decayRate);
             data.setPixelColour(x, y, c.overlaidWith(existing));
         }

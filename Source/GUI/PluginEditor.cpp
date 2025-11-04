@@ -350,6 +350,8 @@ void TitanVocalEditor::initializeDisplayModeSelector()
             spectralDisplay->setDisplayMode(static_cast<SpectralDisplay::DisplayMode>(id - 1));
     };
     displayModeBox.setSelectedId(1, juce::sendNotification);
+    // Optional: map number keys to quick color schemes for spectrogram
+    spectralDisplay->setColorSchemePreset(1);
 }
 
 void TitanVocalEditor::loadDefaultPreset()

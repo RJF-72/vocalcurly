@@ -29,6 +29,7 @@ public:
 
     void setDisplayMode(DisplayMode mode);
     void setColorScheme(const juce::ColourGradient& gradient);
+    void setColorSchemePreset(int presetId); // convenience presets
     void setDecayRate(float decay); // For persistence display
 
     // Interactive features
