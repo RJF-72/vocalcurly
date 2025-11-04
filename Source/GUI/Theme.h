@@ -11,21 +11,49 @@ public:
     TitanDarkLookAndFeel()
     {
         using namespace juce;
-        setColour(ResizableWindow::backgroundColourId, Colour(0xFF121418));
-        setColour(TextButton::buttonColourId, Colour(0xFF1E2127));
-        setColour(TextButton::textColourOnId, Colours::white);
-        setColour(TextButton::textColourOffId, Colours::white.withAlpha(0.9f));
-        setColour(ComboBox::backgroundColourId, Colour(0xFF1E2127));
-        setColour(ComboBox::textColourId, Colours::white);
-        setColour(ComboBox::arrowColourId, Colours::white.withAlpha(0.9f));
-        setColour(Slider::textBoxBackgroundColourId, Colour(0xFF1E2127));
-        setColour(Slider::textBoxTextColourId, Colours::white);
-        setColour(Slider::thumbColourId, Colour(0xFF3AA6FF));
+        // Typography (prefer Windows default modern font)
+        setDefaultSansSerifTypefaceName("Segoe UI");
+
+        // Design tokens
+        primary = Colour(0xFF3AA6FF);
+        surface = Colour(0xFF121418);
+        surfaceAlt = Colour(0xFF1A1D22);
+        outline = Colour(0x22FFFFFF);
+        textMain = Colours::white;
+        textSubtle = Colours::white.withAlpha(0.9f);
+        success = Colour(0xFF3ECF8E);
+        warning = Colour(0xFFFFD166);
+        error   = Colour(0xFFEF476F);
+
+        // Global colours
+        setColour(ResizableWindow::backgroundColourId, surface);
+        setColour(Toolbar::backgroundColourId, Colour(0xFF101316));
+
+        // Buttons
+        setColour(TextButton::buttonColourId, surfaceAlt);
+        setColour(TextButton::textColourOnId, textMain);
+        setColour(TextButton::textColourOffId, textSubtle);
+
+        // ComboBox
+        setColour(ComboBox::backgroundColourId, surfaceAlt);
+        setColour(ComboBox::textColourId, textMain);
+        setColour(ComboBox::arrowColourId, textSubtle);
+
+        // Sliders
+        setColour(Slider::textBoxBackgroundColourId, surfaceAlt);
+        setColour(Slider::textBoxTextColourId, textMain);
+        setColour(Slider::thumbColourId, primary);
         setColour(Slider::trackColourId, Colour(0xFF2A2E36));
-        setColour(Label::textColourId, Colours::white.withAlpha(0.9f));
-        setColour(ToggleButton::tickColourId, Colour(0xFF3AA6FF));
-        setColour(ToggleButton::textColourId, Colours::white);
-        setColour(TooltipWindow::textColourId, Colours::white);
+
+        // Labels & toggles
+        setColour(Label::textColourId, textSubtle);
+        setColour(ToggleButton::tickColourId, primary);
+        setColour(ToggleButton::textColourId, textMain);
+        setColour(TooltipWindow::textColourId, textMain);
+
+        // Tabs
+        setColour(TabbedButtonBar::tabTextColourId, textSubtle);
+        setColour(TabbedButtonBar::tabOutlineColourId, outline);
     }
 
     void drawButtonBackground(juce::Graphics& g, juce::Button& button,
@@ -47,17 +75,36 @@ public:
         juce::ignoreUnused(isButtonDown, buttonX, buttonY, buttonW, buttonH);
         auto bounds = juce::Rectangle<float>((float) width, (float) height);
         g.setColour(findColour(juce::ComboBox::backgroundColourId));
-        g.fillRoundedRectangle(bounds, 6.0f);
-        g.setColour(juce::Colour(0x22FFFFFF));
-        g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+        g.fillRoundedRectangle(bounds, 8.0f);
+        g.setColour(outline);
+        g.drawRoundedRectangle(bounds, 8.0f, 1.0f);
     }
 
     void drawLabel(juce::Graphics& g, juce::Label& label) override
     {
         if (label.isEnabled())
-            g.fillAll(juce::Colour(0x00121418));
+            g.fillAll(surface.withAlpha(0.0f));
         g.setColour(label.findColour(juce::Label::textColourId));
         g.setFont(label.getFont());
         g.drawFittedText(label.getText(), label.getLocalBounds(), label.getJustificationType(), 1);
     }
+
+    void drawTabButton(juce::TabBarButton& button, juce::Graphics& g, bool isMouseOver, bool isMouseDown) override
+    {
+        auto area = button.getLocalBounds().toFloat();
+        bool active = button.isFrontTab();
+        auto bg = active ? surfaceAlt.brighter(0.08f) : surfaceAlt.darker(0.02f);
+        if (isMouseDown) bg = bg.brighter(0.12f);
+        else if (isMouseOver) bg = bg.brighter(0.06f);
+        g.setColour(bg);
+        g.fillRoundedRectangle(area.reduced(2.0f), 8.0f);
+        g.setColour(outline);
+        g.drawRoundedRectangle(area.reduced(2.0f), 8.0f, 1.0f);
+        g.setColour(active ? textMain : textSubtle);
+        g.setFont(juce::Font(juce::Font::getDefaultSansSerifTypefaceName(), 14.0f, juce::Font::plain));
+        g.drawText(button.getButtonText(), area, juce::Justification::centred);
+    }
+
+private:
+    juce::Colour primary, surface, surfaceAlt, outline, textMain, textSubtle, success, warning, error;
 };
