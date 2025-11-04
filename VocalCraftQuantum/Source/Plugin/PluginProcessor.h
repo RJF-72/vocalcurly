@@ -44,6 +44,12 @@ public:
 
 private:
     AIModelInterface aiInterface;
+    double currentSampleRate { 44100.0 };
+
+    // Simple formant filters per channel (F1,F2,F3)
+    juce::dsp::IIR::Filter<float> formantFilters[2][3];
+
+    void updateFormantFilters(float semitoneShift);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VocalCraftQuantumProcessor)
 };

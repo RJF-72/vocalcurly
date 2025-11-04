@@ -6,7 +6,7 @@ VocalCraftQuantumEditor::VocalCraftQuantumEditor(VocalCraftQuantumProcessor& p)
 {
     setSize(900, 600);
 
-    spectralDisplay = std::make_unique<SpectralDisplay>();
+    spectralDisplay = std::make_unique<SpectralDisplay>(audioProcessor.spectralAnalyzer, audioProcessor.apvts);
     parameterControls = std::make_unique<ParameterControls>(audioProcessor.apvts);
     addAndMakeVisible(mainTabs);
 
