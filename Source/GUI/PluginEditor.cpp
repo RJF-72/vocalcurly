@@ -5,6 +5,76 @@
 // File: PluginEditor.cpp
 // Description: Implements TitanVocal editor UI, display mode selector, presets, and AI toggle.
 #include "PluginEditor.h"
+// Minimal custom Toolbar item to avoid drawable dependencies
+class ActionToolbarItem : public juce::ToolbarItemComponent {
+public:
+    ActionToolbarItem(int itemId, const juce::String& label, std::function<void()> onClick)
+        : juce::ToolbarItemComponent(itemId, label, true, false), callback(std::move(onClick)) {}
+
+    bool getToolbarItemSizes(int toolbarDepth, bool isVertical, int& preferredSize,
+                             int& minSize, int& maxSize) override
+    {
+        juce::ignoreUnused(isVertical);
+        preferredSize = 110; minSize = 90; maxSize = 140;
+        return true;
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        auto r = getLocalBounds().toFloat();
+        auto base = findColour(juce::TextButton::buttonColourId);
+        g.setColour(base);
+        g.fillRoundedRectangle(r, 4.0f);
+        g.setColour(findColour(juce::TextButton::textColourOnId));
+        g.drawText(getName(), getLocalBounds(), juce::Justification::centred);
+    }
+
+    void mouseUp(const juce::MouseEvent&) override { if (callback) callback(); }
+    void resized() override {}
+
+private:
+    std::function<void()> callback;
+};
+
+class TitanToolbarFactory : public juce::ToolbarItemFactory {
+public:
+    explicit TitanToolbarFactory(TitanVocalEditor& ed) : editor(ed) {}
+
+    void getAllItemIds(juce::Array<int>& ids) override
+    {
+        ids.add(TitanVocalEditor::ToolbarIDs::tbAdvanced);
+        ids.add(TitanVocalEditor::ToolbarIDs::tbLoadPreset);
+        ids.add(TitanVocalEditor::ToolbarIDs::tbSavePreset);
+        ids.add(TitanVocalEditor::ToolbarIDs::tbLoadDefault);
+        ids.add(TitanVocalEditor::ToolbarIDs::tbAIAssistant);
+    }
+
+    void getDefaultItemIds(juce::Array<int>& ids) override { getAllItemIds(ids); }
+
+    juce::ToolbarItemComponent* createItem(int itemId) override
+    {
+        using IDs = TitanVocalEditor::ToolbarIDs;
+        switch (itemId)
+        {
+            case IDs::tbAdvanced:
+                return new ActionToolbarItem(itemId, "Advanced", [this]{ editor.toggleAdvancedMode(true); });
+            case IDs::tbLoadPreset:
+                return new ActionToolbarItem(itemId, "Load", [this]{ editor.loadPreset(); });
+            case IDs::tbSavePreset:
+                return new ActionToolbarItem(itemId, "Save", [this]{ editor.savePreset(); });
+            case IDs::tbLoadDefault:
+                return new ActionToolbarItem(itemId, "Load Default", [this]{ editor.loadDefaultPreset(); });
+            case IDs::tbAIAssistant:
+                return new ActionToolbarItem(itemId, "AI Assistant", [this]{ editor.showAIAssistant(); });
+            default:
+                break;
+        }
+        return nullptr;
+    }
+
+private:
+    TitanVocalEditor& editor;
+};
 
 TitanVocalEditor::TitanVocalEditor(TitanVocalProcessor& p)
     : juce::AudioProcessorEditor(&p), audioProcessor(p), mainTabs(juce::TabbedButtonBar::TabsAtTop)
@@ -314,6 +384,7 @@ void TitanVocalEditor::setStatus(const juce::String& text)
 
 void TitanVocalEditor::populateToolbar()
 {
-    // Placeholder: populate with actionable items in subsequent steps
     toolbar.clear();
+    TitanToolbarFactory factory(*this);
+    toolbar.addDefaultItems(factory);
 }
