@@ -5,28 +5,57 @@
 // File: PluginEditor.cpp
 // Description: Implements TitanVocal editor UI, display mode selector, presets, and AI toggle.
 #include "PluginEditor.h"
-// Minimal custom Toolbar item to avoid drawable dependencies
-class ActionToolbarItem : public juce::ToolbarItemComponent {
+// Icon-based toolbar item with hover/press feedback and vector-drawn icons
+class IconToolbarItem : public juce::ToolbarItemComponent {
 public:
-    ActionToolbarItem(int itemId, const juce::String& label, std::function<void()> onClick)
+    IconToolbarItem(int itemId, const juce::String& label, std::function<void()> onClick)
         : juce::ToolbarItemComponent(itemId, label, true, false), callback(std::move(onClick)) {}
 
     bool getToolbarItemSizes(int toolbarDepth, bool isVertical, int& preferredSize,
                              int& minSize, int& maxSize) override
     {
         juce::ignoreUnused(isVertical);
-        preferredSize = 110; minSize = 90; maxSize = 140;
+        const int h = juce::jmax(28, toolbarDepth - 6);
+        preferredSize = h + 72; // icon + label padding
+        minSize = h + 56;
+        maxSize = h + 92;
         return true;
     }
 
     void paint(juce::Graphics& g) override
     {
-        auto r = getLocalBounds().toFloat();
-        auto base = findColour(juce::TextButton::buttonColourId);
-        g.setColour(base);
-        g.fillRoundedRectangle(r, 4.0f);
-        g.setColour(findColour(juce::TextButton::textColourOnId));
-        g.drawText(getName(), getLocalBounds(), juce::Justification::centred);
+        auto bounds = getLocalBounds().toFloat();
+        auto bg = findColour(juce::Toolbar::backgroundColourId);
+        auto accent = juce::Colours::silver.withAlpha(0.25f);
+        auto hoverAccent = juce::Colours::white.withAlpha(0.10f);
+        auto pressAccent = juce::Colours::white.withAlpha(0.18f);
+
+        // Card background
+        g.setColour(bg.darker(0.10f));
+        g.fillRoundedRectangle(bounds, 6.0f);
+        if (isMouseButtonDown())
+        {
+            g.setColour(pressAccent);
+            g.fillRoundedRectangle(bounds, 6.0f);
+        }
+        else if (isMouseOver(true))
+        {
+            g.setColour(hoverAccent);
+            g.fillRoundedRectangle(bounds, 6.0f);
+        }
+
+        // Icon + label layout
+        auto iconArea = bounds.withSizeKeepingCentre(26.0f, 26.0f).translated(-22.0f, 0.0f);
+        auto textArea = juce::Rectangle<float>(bounds.getX() + bounds.getWidth() / 2.0f - 6.0f,
+                                               bounds.getY(), bounds.getWidth() / 2.0f + 6.0f, bounds.getHeight());
+
+        // Draw icon
+        g.setColour(juce::Colours::lightgrey);
+        drawIcon(g, iconArea.toNearestInt());
+
+        // Draw label
+        g.setColour(juce::Colours::whitesmoke);
+        g.drawText(getName(), textArea, juce::Justification::centredLeft);
     }
 
     void mouseUp(const juce::MouseEvent&) override { if (callback) callback(); }
@@ -34,6 +63,74 @@ public:
 
 private:
     std::function<void()> callback;
+
+    void drawIcon(juce::Graphics& g, juce::Rectangle<int> r)
+    {
+        const int id = getItemId();
+        juce::Path path;
+        const float cx = r.getCentreX();
+        const float cy = r.getCentreY();
+        const float s = juce::jmin(r.getWidth(), r.getHeight()) * 0.42f;
+
+        auto addGear = [&] {
+            for (int i = 0; i < 8; ++i)
+            {
+                float a = juce::MathConstants<float>::twoPi * (float) i / 8.0f;
+                float x1 = cx + std::cos(a) * (s * 0.9f);
+                float y1 = cy + std::sin(a) * (s * 0.9f);
+                float x2 = cx + std::cos(a) * (s * 1.2f);
+                float y2 = cy + std::sin(a) * (s * 1.2f);
+                path.addTriangle(x1, y1, x2, y2, cx, cy);
+            }
+            path.addEllipse(cx - s * 0.65f, cy - s * 0.65f, s * 1.3f, s * 1.3f);
+            juce::Path inner; inner.addEllipse(cx - s * 0.35f, cy - s * 0.35f, s * 0.7f, s * 0.7f);
+            path.addPath(inner);
+        };
+
+        auto addFolder = [&] {
+            juce::Rectangle<float> b((float)r.getX(), (float)r.getY(), (float)r.getWidth(), (float)r.getHeight());
+            auto top = b.removeFromTop(b.getHeight() * 0.45f);
+            juce::Path p;
+            p.addRoundedRectangle(b.reduced(2.0f), 3.0f);
+            p.addRoundedRectangle(top.reduced(4.0f).translated(6.0f, 0.0f), 3.0f);
+            path.addPath(p);
+        };
+
+        auto addSave = [&] {
+            juce::Path p; p.addRoundedRectangle(r.toFloat().reduced(3.0f), 3.0f);
+            juce::Rectangle<float> notch((float)r.getX()+6, (float)r.getY()+6, (float)r.getWidth()-12, 10.0f);
+            p.addRectangle(notch);
+            p.addEllipse((float)r.getCentreX()-6, (float)r.getBottom()-16, 12.0f, 12.0f);
+            path.addPath(p);
+        };
+
+        auto addRefresh = [&] {
+            juce::Path p; p.addArc(cx - s, cy - s, 2*s, 2*s, juce::MathConstants<float>::pi*0.2f, juce::MathConstants<float>::pi*1.7f, true);
+            juce::Line<float> l(cx + s*0.7f, cy - s*0.1f, cx + s*0.95f, cy + s*0.15f);
+            p.addArrow(l, 4.0f, 8.0f, 4.0f);
+            path.addPath(p);
+        };
+
+        auto addSparkles = [&] {
+            juce::Path p;
+            for (int i=0;i<4;++i){
+                float a = juce::MathConstants<float>::twoPi * i / 4.0f;
+                p.addStar(juce::Point<float>(cx + std::cos(a)*s*0.4f, cy + std::sin(a)*s*0.4f), 5, s*0.15f, s*0.35f);
+            }
+            path.addPath(p);
+        };
+
+        switch (id)
+        {
+            case TitanVocalEditor::ToolbarIDs::tbAdvanced:     addGear(); break;
+            case TitanVocalEditor::ToolbarIDs::tbLoadPreset:   addFolder(); break;
+            case TitanVocalEditor::ToolbarIDs::tbSavePreset:   addSave(); break;
+            case TitanVocalEditor::ToolbarIDs::tbLoadDefault:  addRefresh(); break;
+            case TitanVocalEditor::ToolbarIDs::tbAIAssistant:  addSparkles(); break;
+            default: break;
+        }
+        g.strokePath(path, juce::PathStrokeType(1.6f));
+    }
 };
 
 class TitanToolbarFactory : public juce::ToolbarItemFactory {
@@ -57,15 +154,15 @@ public:
         switch (itemId)
         {
             case IDs::tbAdvanced:
-                return new ActionToolbarItem(itemId, "Advanced", [this]{ editor.toggleAdvancedMode(true); });
+                return new IconToolbarItem(itemId, "Advanced", [this]{ editor.toggleAdvancedMode(true); });
             case IDs::tbLoadPreset:
-                return new ActionToolbarItem(itemId, "Load", [this]{ editor.loadPreset(); });
+                return new IconToolbarItem(itemId, "Load", [this]{ editor.loadPreset(); });
             case IDs::tbSavePreset:
-                return new ActionToolbarItem(itemId, "Save", [this]{ editor.savePreset(); });
+                return new IconToolbarItem(itemId, "Save", [this]{ editor.savePreset(); });
             case IDs::tbLoadDefault:
-                return new ActionToolbarItem(itemId, "Load Default", [this]{ editor.loadDefaultPreset(); });
+                return new IconToolbarItem(itemId, "Load Default", [this]{ editor.loadDefaultPreset(); });
             case IDs::tbAIAssistant:
-                return new ActionToolbarItem(itemId, "AI Assistant", [this]{ editor.showAIAssistant(); });
+                return new IconToolbarItem(itemId, "AI Assistant", [this]{ editor.showAIAssistant(); });
             default:
                 break;
         }
@@ -99,6 +196,7 @@ TitanVocalEditor::TitanVocalEditor(TitanVocalProcessor& p)
 
     // Top toolbar (items to be populated progressively)
     addAndMakeVisible(toolbar);
+    toolbar.setColour(juce::Toolbar::backgroundColourId, juce::Colour(0xFF101316));
     populateToolbar();
 
     // Preset selector (kept outside toolbar for now)
