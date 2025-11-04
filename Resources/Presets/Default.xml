@@ -1,0 +1,10 @@
+﻿<Parameters>
+  <Parameter id="dryWet" value="0.8"/>
+  <Parameter id="outputGain" value="0.0"/>
+  <Parameter id="pitchAmount" value="0.5"/>
+  <Parameter id="pitchSpeed" value="0.5"/>
+  <Parameter id="formantShift" value="0.0"/>
+  <Parameter id="noiseAmount" value="0.2"/>
+  <Parameter id="saturation" value="0.1"/>
+  <Parameter id="aiEnabled" value="0"/>
+</Parameters>

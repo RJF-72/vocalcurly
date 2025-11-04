@@ -1,0 +1,34 @@
+# Build directories and artefacts
+/Build/
+/TitanVocal_Plugin_artefacts/
+
+# CMake cache and files
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/build.ninja
+/.ninja_log
+/.ninja_deps
+
+# JUCE FetchContent build outputs
+/_deps/
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Binaries
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.exp
+
+# Logs
+*.log
+
+# User presets (optional keep if desired)
+# /Resources/Presets/*.xml
