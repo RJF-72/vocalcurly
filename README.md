@@ -1,6 +1,6 @@
-# vocalcurly
+# TitanVocal
 
-VocalCraftQuantum – a JUCE-based vocal repair and creative processing plugin prototype.
+TitanVocal – a JUCE-based vocal repair and creative processing plugin prototype.
 
 Project structure
 - VocalCraftQuantum/Source: C++ sources for Plugin, GUI, DSP, AI, Core.
@@ -14,7 +14,7 @@ Option A: CMake standalone app
 2) From C:\Vocal Plugin\VocalCraftQuantum, run:
    - cmake -S . -B build
    - cmake --build build --config Release
-3) Executable target: VocalCraftQuantum_Standalone
+3) Executable target: TitanVocal_Standalone
 
 Notes:
 - CMakeLists.txt uses FetchContent to pull JUCE by default. To use a local JUCE, configure: -DJUCE_DIR=../ThirdParty/JUCE
@@ -29,9 +29,9 @@ Option B: Projucer (if preferred)
 Option C: CMake VST3 plugin
 1) From C:\Vocal Plugin\VocalCraftQuantum, run:
    - cmake -S . -B build -DENABLE_TORCH=ON -DENABLE_ONNX=ON
-   - cmake --build build --config Release --target VocalCraftQuantum_Plugin
+   - cmake --build build --config Release --target TitanVocal_Plugin
 2) The built VST3 will be copied to your system's default VST3 folder (COPY_PLUGIN_AFTER_BUILD is enabled). On Windows this is typically:
-   - C:\Program Files\Common Files\VST3\VocalCraftQuantum.vst3
+   - C:\Program Files\Common Files\VST3\TitanVocal.vst3
 3) If JUCE is local, pass -DJUCE_DIR=../ThirdParty/JUCE
 
 Runtime dependencies

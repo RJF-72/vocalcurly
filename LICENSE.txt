@@ -1,11 +1,11 @@
-VocalCraftQuantum Proprietary License Agreement
+TitanVocal Proprietary License Agreement
 
 Copyright (c) 2025 Ray Flanary and Joni Marie Flanary. All rights reserved.
 
 IMPORTANT: BY ACCESSING, DOWNLOADING, BUILDING, INSTALLING, COPYING, OR USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT USE THE SOFTWARE.
 
 1. Definitions
-- "Software" means the VocalCraftQuantum source code, binaries, resources, models, presets, documentation, and any updates or modifications provided by or on behalf of Ray Flanary and Joni Marie Flanary.
+- "Software" means the TitanVocal source code, binaries, resources, models, presets, documentation, and any updates or modifications provided by or on behalf of Ray Flanary and Joni Marie Flanary.
 - "You" means the individual or legal entity accessing or using the Software.
 
 2. License Grant

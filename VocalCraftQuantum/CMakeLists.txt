@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(VocalCraftQuantum VERSION 0.1.0)
+project(TitanVocal VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,12 +33,12 @@ set(SRC
     Source/AI/AIModelInterface.cpp
 )
 
-add_executable(VocalCraftQuantum_Standalone ${SRC})
-target_compile_definitions(VocalCraftQuantum_Standalone PRIVATE
-    JUCE_APPLICATION_NAME_STRING="VocalCraftQuantum"
+add_executable(TitanVocal_Standalone ${SRC})
+target_compile_definitions(TitanVocal_Standalone PRIVATE
+    JUCE_APPLICATION_NAME_STRING="TitanVocal"
     JUCE_APPLICATION_VERSION_STRING="0.1.0"
 )
-target_link_libraries(VocalCraftQuantum_Standalone PRIVATE
+target_link_libraries(TitanVocal_Standalone PRIVATE
     juce::juce_gui_basics
     juce::juce_audio_basics
     juce::juce_audio_processors
@@ -51,28 +51,28 @@ option(ENABLE_ONNX "Enable ONNX Runtime integration" ON)
 
 if(ENABLE_TORCH)
     find_package(Torch REQUIRED)
-    target_link_libraries(VocalCraftQuantum_Standalone PRIVATE ${TORCH_LIBRARIES})
-    target_compile_definitions(VocalCraftQuantum_Standalone PRIVATE ENABLE_TORCH)
+    target_link_libraries(TitanVocal_Standalone PRIVATE ${TORCH_LIBRARIES})
+    target_compile_definitions(TitanVocal_Standalone PRIVATE ENABLE_TORCH)
 endif()
 
 if(ENABLE_ONNX)
     find_package(ONNXRuntime REQUIRED)
-    target_link_libraries(VocalCraftQuantum_Standalone PRIVATE ONNXRuntime::ONNXRuntime)
-    target_compile_definitions(VocalCraftQuantum_Standalone PRIVATE ENABLE_ONNX)
+    target_link_libraries(TitanVocal_Standalone PRIVATE ONNXRuntime::ONNXRuntime)
+    target_compile_definitions(TitanVocal_Standalone PRIVATE ENABLE_ONNX)
 endif()
 
 # Windows subsystem tweaks
 if(WIN32)
-    target_compile_definitions(VocalCraftQuantum_Standalone PRIVATE JUCE_WIN_PER_MONITOR_DPI_AWARE=1)
+    target_compile_definitions(TitanVocal_Standalone PRIVATE JUCE_WIN_PER_MONITOR_DPI_AWARE=1)
 endif()
 
 # JUCE Plugin target (VST3)
-juce_add_plugin(VocalCraftQuantum_Plugin
-    COMPANY_NAME "VocalCurly"
-    PLUGIN_NAME  "VocalCraftQuantum"
-    PLUGIN_CODE  VcQt
+juce_add_plugin(TitanVocal_Plugin
+    COMPANY_NAME "TitanVocal"
+    PLUGIN_NAME  "TitanVocal"
+    PLUGIN_CODE  TiVc
     FORMATS      VST3
-    PRODUCT_NAME "VocalCraftQuantum"
+    PRODUCT_NAME "TitanVocal"
     IS_SYNTH     FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
@@ -82,7 +82,7 @@ juce_add_plugin(VocalCraftQuantum_Plugin
     SOURCES ${SRC}
 )
 
-target_link_libraries(VocalCraftQuantum_Plugin PRIVATE
+target_link_libraries(TitanVocal_Plugin PRIVATE
     juce::juce_gui_basics
     juce::juce_audio_basics
     juce::juce_audio_processors
@@ -90,11 +90,11 @@ target_link_libraries(VocalCraftQuantum_Plugin PRIVATE
 )
 
 if(ENABLE_TORCH)
-    target_link_libraries(VocalCraftQuantum_Plugin PRIVATE ${TORCH_LIBRARIES})
-    target_compile_definitions(VocalCraftQuantum_Plugin PRIVATE ENABLE_TORCH)
+    target_link_libraries(TitanVocal_Plugin PRIVATE ${TORCH_LIBRARIES})
+    target_compile_definitions(TitanVocal_Plugin PRIVATE ENABLE_TORCH)
 endif()
 
 if(ENABLE_ONNX)
-    target_link_libraries(VocalCraftQuantum_Plugin PRIVATE ONNXRuntime::ONNXRuntime)
-    target_compile_definitions(VocalCraftQuantum_Plugin PRIVATE ENABLE_ONNX)
+    target_link_libraries(TitanVocal_Plugin PRIVATE ONNXRuntime::ONNXRuntime)
+    target_compile_definitions(TitanVocal_Plugin PRIVATE ENABLE_ONNX)
 endif()
