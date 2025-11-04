@@ -49,6 +49,19 @@ Presets
 - Default preset: See TitanVocal/Resources/Presets/Default.xml.
 - Save preset: Use the "Save" button in the editor to write APVTS state to an XML file.
 - Load preset: Use the "Load" button to restore APVTS state from XML (supports simple <Parameter id="..." value="..."/> format).
+- One-click: Use the "Load Default" button to load the bundled Default.xml quickly.
+
+AI Models
+- Place models in TitanVocal/Resources/Models (e.g., default.onnx or default.pt).
+- The editor includes a model selector (Noise Reduction, Pitch Correction, Formant Repair, Breath Control, Voice Morphing, Timing Correction).
+- On startup, the processor attempts to load a default model if present.
+
+Screenshots
+- See TitanVocal/Docs/User/Images for screenshots or GIFs.
+- Suggested files:
+  - display-mode-selector.png (shows Spectrogram/Waveform/Pitch/Formant/FFT selector)
+  - ai-toggle-and-models.png (AI toggle and model selection)
+  - presets-save-load.gif (demonstrates Save/Load and Load Default)
 
 License and copyright
 - License: Proprietary and very strict (see LICENSE.txt). Non-transferable, non-sublicensable, revocable; no redistribution, no derivative works, no reverse engineering, no public benchmarking, no AI training on code or outputs, and no commercial use without written permission.
