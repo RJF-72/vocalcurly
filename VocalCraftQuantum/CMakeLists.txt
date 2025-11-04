@@ -64,3 +64,36 @@ endif()
 if(WIN32)
     target_compile_definitions(VocalCraftQuantum_Standalone PRIVATE JUCE_WIN_PER_MONITOR_DPI_AWARE=1)
 endif()
+
+# JUCE Plugin target (VST3)
+juce_add_plugin(VocalCraftQuantum_Plugin
+    COMPANY_NAME "VocalCurly"
+    PLUGIN_NAME  "VocalCraftQuantum"
+    PLUGIN_CODE  VcQt
+    FORMATS      VST3
+    PRODUCT_NAME "VocalCraftQuantum"
+    IS_SYNTH     FALSE
+    NEEDS_MIDI_INPUT FALSE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    COPY_PLUGIN_AFTER_BUILD TRUE
+    SOURCES ${SRC}
+)
+
+target_link_libraries(VocalCraftQuantum_Plugin PRIVATE
+    juce::juce_gui_basics
+    juce::juce_audio_basics
+    juce::juce_audio_processors
+    juce::juce_dsp
+)
+
+if(ENABLE_TORCH)
+    target_link_libraries(VocalCraftQuantum_Plugin PRIVATE ${TORCH_LIBRARIES})
+    target_compile_definitions(VocalCraftQuantum_Plugin PRIVATE ENABLE_TORCH)
+endif()
+
+if(ENABLE_ONNX)
+    target_link_libraries(VocalCraftQuantum_Plugin PRIVATE ONNXRuntime::ONNXRuntime)
+    target_compile_definitions(VocalCraftQuantum_Plugin PRIVATE ENABLE_ONNX)
+endif()

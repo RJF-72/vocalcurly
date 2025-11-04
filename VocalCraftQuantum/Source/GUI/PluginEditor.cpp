@@ -126,6 +126,26 @@ void VocalCraftQuantumEditor::createCreativeControls() {}
 void VocalCraftQuantumEditor::createOutputControls() {}
 
 void VocalCraftQuantumEditor::updateMeters() {}
-void VocalCraftQuantumEditor::loadPreset() {}
-void VocalCraftQuantumEditor::savePreset() {}
+void VocalCraftQuantumEditor::loadPreset() {
+    juce::FileChooser chooser ("Load Preset", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.xml");
+    if (chooser.browseForFileToOpen())
+    {
+        auto file = chooser.getResult();
+        std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse(file));
+        if (xml.get() != nullptr && xml->hasTagName(audioProcessor.apvts.state.getType()))
+        {
+            audioProcessor.apvts.replaceState(juce::ValueTree::fromXml(*xml));
+        }
+    }
+}
+void VocalCraftQuantumEditor::savePreset() {
+    juce::FileChooser chooser ("Save Preset", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.xml");
+    if (chooser.browseForFileToSave(true))
+    {
+        auto file = chooser.getResult();
+        auto state = audioProcessor.apvts.copyState();
+        std::unique_ptr<juce::XmlElement> xml (state.createXml());
+        xml->writeToFile(file, {});
+    }
+}
 void VocalCraftQuantumEditor::showAIAssistant() {}
