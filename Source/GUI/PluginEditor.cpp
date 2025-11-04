@@ -160,12 +160,19 @@ void TitanVocalEditor::resized()
     auto toolbarRow = area.removeFromTop(36);
     toolbar.setBounds(toolbarRow);
 
-    // Controls row under toolbar
+    // Controls row under toolbar (FlexBox for responsiveness)
     auto controlsRow = area.removeFromTop(36);
-    displayModeBox.setBounds(controlsRow.removeFromLeft(140));
-    presetSelector.setBounds(controlsRow.removeFromLeft(220));
-    aiEnabledToggle.setBounds(controlsRow.removeFromLeft(70));
-    aiModelBox.setBounds(controlsRow.removeFromLeft(140));
+    {
+        juce::FlexBox fb;
+        fb.flexDirection = juce::FlexBox::Direction::row;
+        fb.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+        fb.alignItems = juce::FlexBox::AlignItems::stretch;
+        fb.items.add(juce::FlexItem(displayModeBox).withMinWidth(120.0f).withMaxWidth(180.0f).withHeight((float) controlsRow.getHeight()).withMargin(juce::FlexItem::Margin(0, 6, 0, 0)));
+        fb.items.add(juce::FlexItem(presetSelector).withMinWidth(180.0f).withMaxWidth(260.0f).withHeight((float) controlsRow.getHeight()).withMargin(juce::FlexItem::Margin(0, 6, 0, 0)));
+        fb.items.add(juce::FlexItem(aiEnabledToggle).withMinWidth(60.0f).withMaxWidth(90.0f).withHeight((float) controlsRow.getHeight()).withMargin(juce::FlexItem::Margin(0, 6, 0, 0)));
+        fb.items.add(juce::FlexItem(aiModelBox).withMinWidth(120.0f).withMaxWidth(180.0f).withHeight((float) controlsRow.getHeight()));
+        fb.performLayout(controlsRow);
+    }
 
     auto meterArea = area.removeFromRight(80);
     inputLabel.setBounds(meterArea.removeFromTop(20));
