@@ -14,8 +14,9 @@ public:
         // Typography (prefer Windows default modern font)
         setDefaultSansSerifTypefaceName("Segoe UI");
 
-        // Design tokens
-        primary = Colour(0xFF3AA6FF);
+        // Design tokens (warm accent palette: red/yellow)
+        primary = Colour(0xFFFFD166);   // warm yellow accent
+        accent2 = Colour(0xFFEF476F);   // vibrant red accent
         surface = Colour(0xFF121418);
         surfaceAlt = Colour(0xFF1A1D22);
         outline = Colour(0x22FFFFFF);
@@ -103,8 +104,16 @@ public:
         g.setColour(active ? textMain : textSubtle);
         g.setFont(juce::Font(juce::Font::getDefaultSansSerifTypefaceName(), 14.0f, juce::Font::plain));
         g.drawText(button.getButtonText(), area, juce::Justification::centred);
+
+        // Accent underline for active tab
+        if (active)
+        {
+            auto underline = area.removeFromBottom(3.0f).reduced(10.0f);
+            g.setColour(primary);
+            g.fillRoundedRectangle(underline, 2.0f);
+        }
     }
 
 private:
-    juce::Colour primary, surface, surfaceAlt, outline, textMain, textSubtle, success, warning, error;
+    juce::Colour primary, accent2, surface, surfaceAlt, outline, textMain, textSubtle, success, warning, error;
 };

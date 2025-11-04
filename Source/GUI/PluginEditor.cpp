@@ -49,8 +49,11 @@ public:
         auto textArea = juce::Rectangle<float>(bounds.getX() + bounds.getWidth() / 2.0f - 6.0f,
                                                bounds.getY(), bounds.getWidth() / 2.0f + 6.0f, bounds.getHeight());
 
-        // Draw icon
-        g.setColour(juce::Colours::lightgrey);
+        // Draw icon (accent on hover/press)
+        auto iconColour = juce::Colours::lightgrey;
+        if (isMouseButtonDown() || isMouseOver(true))
+            iconColour = findColour(juce::Slider::thumbColourId).withAlpha(0.95f);
+        g.setColour(iconColour);
         drawIcon(g, iconArea.toNearestInt());
 
         // Draw label
@@ -448,8 +451,8 @@ void TitanVocalEditor::initializeDisplayModeSelector()
             spectralDisplay->setDisplayMode(static_cast<SpectralDisplay::DisplayMode>(id - 1));
     };
     displayModeBox.setSelectedId(1, juce::sendNotification);
-    // Optional: map number keys to quick color schemes for spectrogram
-    spectralDisplay->setColorSchemePreset(1);
+    // Default to warm 'Fire' palette per user preference (red/yellow)
+    spectralDisplay->setColorSchemePreset(2);
 }
 
 void TitanVocalEditor::loadDefaultPreset()
