@@ -1,0 +1,66 @@
+TitanVocal Proprietary License Agreement
+
+Copyright (c) 2025 Ray Flanary and Joni Marie Flanary. All rights reserved.
+
+IMPORTANT: BY ACCESSING, DOWNLOADING, BUILDING, INSTALLING, COPYING, OR USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT USE THE SOFTWARE.
+
+1. Definitions
+- "Software" means the TitanVocal source code, binaries, resources, models, presets, documentation, and any updates or modifications provided by or on behalf of Ray Flanary and Joni Marie Flanary.
+- "You" means the individual or legal entity accessing or using the Software.
+
+2. License Grant
+Subject to strict compliance with this Agreement, the Authors grant You a limited, personal, non-exclusive, non-transferable, non-sublicensable, revocable license to use the Software solely for internal evaluation and development purposes.
+
+3. Restrictions
+You shall NOT, and shall not permit others to:
+- (a) distribute, publish, disclose, sell, license, rent, lease, lend, host, or otherwise make the Software or any derivative available to any third party;
+- (b) modify, translate, adapt, alter, create derivative works of, or merge the Software with other software, except as strictly necessary for internal evaluation;
+- (c) reverse engineer, decompile, disassemble, or otherwise attempt to derive source code, algorithms, architectures, models, or data from any portion of the Software, except to the limited extent expressly permitted by applicable law notwithstanding this limitation;
+- (d) use the Software for any commercial offering or service (including SaaS, cloud, or on-prem products) without prior written permission from the Authors;
+- (e) benchmark, publish performance results, or make any public statements about the Software without prior written consent;
+- (f) remove, obscure, or alter any proprietary notices, copyright or trademark notices, or confidentiality designations;
+- (g) use the Software or outputs to train, fine-tune, evaluate, or derive datasets or machine learning models, or to improve any AI systems, without explicit written permission from the Authors;
+- (h) circumvent, disable, or interfere with any security, licensing, or technical protection measures;
+- (i) use the Software in violation of any applicable law or regulation.
+
+4. Ownership and Reservation of Rights
+The Software is licensed, not sold. The Authors retain all right, title, and interest in and to the Software and all intellectual property rights therein. No rights are granted except as expressly provided in this Agreement.
+
+5. Confidentiality
+The Software (including design details and performance characteristics) constitutes confidential information of the Authors. You shall maintain its confidentiality and use at least the same degree of care You use to protect Your own confidential information, but not less than reasonable care.
+
+6. Feedback
+Any feedback, suggestions, or improvements You provide may be used by the Authors without restriction. You hereby assign to the Authors all right, title, and interest in such feedback.
+
+7. Third-Party Components
+The Software may depend on third-party components (e.g., JUCE, LibTorch/PyTorch, ONNX Runtime). Those components are licensed separately and subject to their respective licenses. You are solely responsible for obtaining and complying with any third-party licenses. Use of JUCE under GPL requires compliant distribution; proprietary distribution of JUCE-based builds requires a valid commercial JUCE license.
+
+8. Term and Termination
+This Agreement is effective until terminated. The Authors may terminate this Agreement immediately upon notice if You breach any term. Upon termination, You must cease all use and destroy all copies of the Software. Sections 3–16 survive termination.
+
+9. No Warranty
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. YOU ASSUME ALL RISKS OF USE.
+
+10. Limitation of Liability
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, PUNITIVE, OR COVER DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA, OR USE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THE AUTHORS’ TOTAL LIABILITY FOR ANY CLAIM SHALL NOT EXCEED ONE HUNDRED U.S. DOLLARS (US$100).
+
+11. Indemnity
+You agree to indemnify, defend, and hold harmless the Authors from and against any claims, liabilities, damages, losses, and expenses (including reasonable attorneys’ fees) arising out of or connected with Your use of the Software in violation of this Agreement or applicable law.
+
+12. Export and Compliance
+You represent that You are not prohibited from receiving the Software under applicable laws (including export control and sanctions). You shall comply with all applicable export and import laws and regulations.
+
+13. Governing Law and Venue
+This Agreement is governed by the laws of the United States and the State of Delaware, without regard to conflicts of law principles. Exclusive jurisdiction and venue shall lie in the state and federal courts located in Delaware, and You consent to personal jurisdiction therein.
+
+14. Equitable Relief
+You acknowledge that any breach of Sections 3–5 will cause irreparable harm to the Authors for which monetary damages would be inadequate, and the Authors shall be entitled to injunctive or other equitable relief without the need to post bond.
+
+15. Assignment
+You may not assign or transfer this Agreement or any rights hereunder without prior written consent from the Authors. Any attempted assignment without consent is void.
+
+16. Entire Agreement; Severability; Waiver
+This Agreement constitutes the entire agreement between the parties regarding the Software and supersedes all prior or contemporaneous communications. If any provision is found unenforceable, it shall be limited or eliminated to the minimum extent necessary so that the Agreement shall otherwise remain in full force and effect. No waiver of any provision shall be effective unless in writing and signed by the Authors.
+
+Contact
+For licensing inquiries, please contact the Authors.

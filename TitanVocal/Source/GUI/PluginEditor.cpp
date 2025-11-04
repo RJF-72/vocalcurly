@@ -6,10 +6,11 @@
 // Description: Implements TitanVocal editor UI, display mode selector, presets, and AI toggle.
 #include "PluginEditor.h"
 
-VocalCraftQuantumEditor::VocalCraftQuantumEditor(VocalCraftQuantumProcessor& p)
+TitanVocalEditor::TitanVocalEditor(TitanVocalProcessor& p)
     : juce::AudioProcessorEditor(&p), audioProcessor(p), mainTabs(juce::TabbedButtonBar::TabsAtTop)
 {
     setSize(900, 600);
+    setLookAndFeel(&darkTheme);
 
     spectralDisplay = std::make_unique<SpectralDisplay>(audioProcessor.spectralAnalyzer, audioProcessor.apvts);
     parameterControls = std::make_unique<ParameterControls>(audioProcessor.apvts);
@@ -47,6 +48,21 @@ VocalCraftQuantumEditor::VocalCraftQuantumEditor(VocalCraftQuantumProcessor& p)
     addAndMakeVisible(aiEnabledToggle);
     aiEnabledAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.apvts, "aiEnabled", aiEnabledToggle);
 
+    // AI model selector
+    addAndMakeVisible(aiModelBox);
+    aiModelBox.addItem("Noise Red.", 1);
+    aiModelBox.addItem("Pitch Corr.", 2);
+    aiModelBox.addItem("Formant Rep.", 3);
+    aiModelBox.addItem("Breath Ctrl.", 4);
+    aiModelBox.addItem("Voice Morph.", 5);
+    aiModelBox.addItem("Timing Corr.", 6);
+    aiModelAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(audioProcessor.apvts, "aiModelType", aiModelBox);
+
+    // Load Default Preset button
+    addAndMakeVisible(loadDefaultPresetButton);
+    loadDefaultPresetButton.setButtonText("Load Default");
+    loadDefaultPresetButton.addListener(this);
+
     // Meters
     addAndMakeVisible(inputMeter);
     addAndMakeVisible(outputMeter);
@@ -55,20 +71,35 @@ VocalCraftQuantumEditor::VocalCraftQuantumEditor(VocalCraftQuantumProcessor& p)
     inputLabel.setText("In", juce::dontSendNotification);
     outputLabel.setText("Out", juce::dontSendNotification);
 
+    // Status bar
+    statusBar.setJustificationType(juce::Justification::centredLeft);
+    statusBar.setText("Ready", juce::dontSendNotification);
+    addAndMakeVisible(statusBar);
+
     startTimerHz(30);
 }
 
-VocalCraftQuantumEditor::~VocalCraftQuantumEditor() { }
+TitanVocalEditor::~TitanVocalEditor() { }
 
-void VocalCraftQuantumEditor::paint(juce::Graphics& g)
+void TitanVocalEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::black);
+    auto bg = findColour(juce::ResizableWindow::backgroundColourId);
+    g.fillAll(bg);
+
+    // Top header accent
+    juce::Rectangle<float> header(0.0f, 0.0f, (float) getWidth(), 36.0f);
+    juce::Colour accent = juce::Colour(0xFF0F1115);
+    g.setGradientFill(juce::ColourGradient(accent, 0, 0, accent.brighter(0.06f), getWidth(), 0, false));
+    g.fillRect(header);
 }
 
-void VocalCraftQuantumEditor::resized()
+void TitanVocalEditor::resized()
 {
     auto area = getLocalBounds().reduced(8);
-    auto topBar = area.removeFromTop(32);
+    auto status = area.removeFromBottom(24);
+    statusBar.setBounds(status);
+
+    auto topBar = area.removeFromTop(36);
     advancedModeButton.setBounds(topBar.removeFromLeft(100));
     displayModeBox.setBounds(topBar.removeFromLeft(140));
     presetSelector.setBounds(topBar.removeFromLeft(200));
@@ -76,6 +107,8 @@ void VocalCraftQuantumEditor::resized()
     savePresetButton.setBounds(topBar.removeFromLeft(80));
     aiAssistantButton.setBounds(topBar.removeFromLeft(120));
     aiEnabledToggle.setBounds(topBar.removeFromLeft(60));
+    aiModelBox.setBounds(topBar.removeFromLeft(120));
+    loadDefaultPresetButton.setBounds(topBar.removeFromLeft(120));
 
     auto meterArea = area.removeFromRight(80);
     inputLabel.setBounds(meterArea.removeFromTop(20));
@@ -93,7 +126,7 @@ void VocalCraftQuantumEditor::resized()
     }
 }
 
-void VocalCraftQuantumEditor::timerCallback()
+void TitanVocalEditor::timerCallback()
 {
     // Update meters using peak of last buffer sample magnitudes
     audioProcessor.spectralAnalyzer.computeSpectrum();
@@ -104,7 +137,7 @@ void VocalCraftQuantumEditor::timerCallback()
     outputMeter.setValue(in);
 }
 
-void VocalCraftQuantumEditor::buttonClicked(juce::Button* button)
+void TitanVocalEditor::buttonClicked(juce::Button* button)
 {
     if (button == &advancedModeButton)
     {
@@ -118,34 +151,55 @@ void VocalCraftQuantumEditor::buttonClicked(juce::Button* button)
     {
         savePreset();
     }
+    else if (button == &loadDefaultPresetButton)
+    {
+        loadDefaultPreset();
+    }
     else if (button == &aiAssistantButton)
     {
         showAIAssistant();
     }
 }
 
-void VocalCraftQuantumEditor::showSection(UISection)
+void TitanVocalEditor::showSection(UISection)
 {
     // Placeholder: handled via tabs in this minimal implementation
 }
 
-void VocalCraftQuantumEditor::toggleAdvancedMode(bool)
+void TitanVocalEditor::toggleAdvancedMode(bool)
 {
     // Toggle additional controls visibility
 }
 
-void VocalCraftQuantumEditor::createPitchControls() {}
-void VocalCraftQuantumEditor::createFormantControls() {}
-void VocalCraftQuantumEditor::createTimeControls() {}
-void VocalCraftQuantumEditor::createCreativeControls() {}
-void VocalCraftQuantumEditor::createOutputControls() {}
+void TitanVocalEditor::createPitchControls() {}
+void TitanVocalEditor::createFormantControls() {}
+void TitanVocalEditor::createTimeControls() {}
+void TitanVocalEditor::createCreativeControls() {}
+void TitanVocalEditor::createOutputControls() {}
 
-void VocalCraftQuantumEditor::updateMeters() {}
-void VocalCraftQuantumEditor::loadPreset() {
-    juce::FileChooser chooser ("Load Preset", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.xml");
-    if (chooser.browseForFileToOpen())
+void TitanVocalEditor::updateMeters() {}
+void TitanVocalEditor::loadPreset() {
+    // Use async file chooser to avoid JUCE_MODAL_LOOPS_PERMITTED requirements in plugin hosts
+    activeFileChooser = std::make_unique<juce::FileChooser>(
+        "Load Preset",
+        juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+        "*.xml");
+
+    auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+    activeFileChooser->launchAsync(flags, [this](const juce::FileChooser& chooser)
     {
         auto file = chooser.getResult();
+        // Release chooser after callback completes
+        activeFileChooser.reset();
+
+        if (! file.exists())
+        {
+            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                                   "Load Preset",
+                                                   "No file selected or file does not exist.");
+            return;
+        }
+
         std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse(file));
         if (xml.get() != nullptr)
         {
@@ -162,6 +216,7 @@ void VocalCraftQuantumEditor::loadPreset() {
                             p->setValueNotifyingHost(juce::jlimit(0.0f, 1.0f, value));
                     }
                 }
+                setStatus("Preset loaded");
                 return;
             }
 
@@ -169,15 +224,42 @@ void VocalCraftQuantumEditor::loadPreset() {
             if (xml->hasTagName(audioProcessor.apvts.state.getType()))
             {
                 audioProcessor.apvts.replaceState(juce::ValueTree::fromXml(*xml));
+                setStatus("Preset state applied");
+            }
+            else
+            {
+                setStatus("Unsupported preset format");
             }
         }
-    }
+        else
+        {
+            setStatus("Failed to parse preset file");
+        }
+    });
 }
-void VocalCraftQuantumEditor::savePreset() {
-    juce::FileChooser chooser ("Save Preset", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.xml");
-    if (chooser.browseForFileToSave(true))
+void TitanVocalEditor::savePreset() {
+    activeFileChooser = std::make_unique<juce::FileChooser>(
+        "Save Preset",
+        juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+        "*.xml");
+
+    auto flags = juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles;
+    activeFileChooser->launchAsync(flags, [this](const juce::FileChooser& chooser)
     {
-        auto file = chooser.getResult();
+        auto resultFile = chooser.getResult();
+        // Release chooser after callback completes
+        activeFileChooser.reset();
+
+        if (resultFile == juce::File())
+        {
+            setStatus("No file selected");
+            return;
+        }
+
+        auto file = resultFile;
+        if (! file.hasFileExtension(".xml"))
+            file = file.withFileExtension("xml");
+
         // Write simple portable format
         juce::XmlElement xmlRoot("Parameters");
         auto addParam = [&](const juce::String& id)
@@ -199,11 +281,16 @@ void VocalCraftQuantumEditor::savePreset() {
         addParam("saturation");
         addParam("aiEnabled");
         xmlRoot.writeToFile(file, {});
-    }
-}
-void VocalCraftQuantumEditor::showAIAssistant() {}
 
-void VocalCraftQuantumEditor::initializeDisplayModeSelector()
+        if (file.existsAsFile() && file.getSize() > 0)
+            setStatus("Preset saved: " + file.getFileName());
+        else
+            setStatus("Failed to save preset");
+    });
+}
+void TitanVocalEditor::showAIAssistant() {}
+
+void TitanVocalEditor::initializeDisplayModeSelector()
 {
     displayModeBox.clear(juce::dontSendNotification);
     displayModeBox.addItem("Spectrogram", 1);
@@ -218,4 +305,41 @@ void VocalCraftQuantumEditor::initializeDisplayModeSelector()
             spectralDisplay->setDisplayMode(static_cast<SpectralDisplay::DisplayMode>(id - 1));
     };
     displayModeBox.setSelectedId(1, juce::sendNotification);
+}
+
+void TitanVocalEditor::loadDefaultPreset()
+{
+    juce::File defaultPreset("C:/Vocal Plugin/TitanVocal/Resources/Presets/Default.xml");
+    if (! defaultPreset.existsAsFile())
+    {
+        setStatus("Default preset missing, choose a preset file");
+        loadPreset();
+        return;
+    }
+    std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse(defaultPreset));
+    if (xml.get() != nullptr)
+    {
+        if (xml->hasTagName("Parameters"))
+        {
+            forEachXmlChildElement(*xml, child)
+            {
+                if (child->hasTagName("Parameter"))
+                {
+                    auto id = child->getStringAttribute("id");
+                    auto value = (float) child->getDoubleAttribute("value");
+                    if (auto* p = audioProcessor.apvts.getParameter(id))
+                        p->setValueNotifyingHost(juce::jlimit(0.0f, 1.0f, value));
+                }
+            }
+            return;
+        }
+        if (xml->hasTagName(audioProcessor.apvts.state.getType()))
+            audioProcessor.apvts.replaceState(juce::ValueTree::fromXml(*xml));
+        setStatus("Default preset applied");
+    }
+}
+
+void TitanVocalEditor::setStatus(const juce::String& text)
+{
+    statusBar.setText(text, juce::dontSendNotification);
 }

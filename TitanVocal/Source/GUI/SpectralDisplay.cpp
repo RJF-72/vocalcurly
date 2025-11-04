@@ -138,12 +138,16 @@ void SpectralDisplay::updateSpectrogram()
     spectrogramImage.moveImageSection(0, 0, 1, 0, spectrogramImage.getWidth() - 1, spectrogramImage.getHeight());
 
     int x = spectrogramImage.getWidth() - 1;
-    for (int y = 0; y < spectrogramImage.getHeight(); ++y)
     {
-        int bin = juce::jmap(y, 0, spectrogramImage.getHeight() - 1, (int)mags.size() - 1, 0);
-        float v = std::log1p(mags[(size_t)bin]);
-        juce::Colour c = juce::Colour::fromHSV(juce::jlimit(0.0f, 1.0f, v * 0.05f), 0.9f, 0.9f, 1.0f);
-        spectrogramImage.setPixel(x, y, c.overlaidWith(spectrogramImage.getPixel(x, y).withAlpha(decayRate)));
+        juce::Image::BitmapData data(spectrogramImage, juce::Image::BitmapData::readWrite);
+        for (int y = 0; y < spectrogramImage.getHeight(); ++y)
+        {
+            int bin = juce::jmap(y, 0, spectrogramImage.getHeight() - 1, (int)mags.size() - 1, 0);
+            float v = std::log1p(mags[(size_t)bin]);
+            juce::Colour c = juce::Colour::fromHSV(juce::jlimit(0.0f, 1.0f, v * 0.05f), 0.9f, 0.9f, 1.0f);
+            auto existing = data.getPixelColour(x, y).withAlpha(decayRate);
+            data.setPixelColour(x, y, c.overlaidWith(existing));
+        }
     }
 }
 

@@ -21,15 +21,24 @@ bool AIModelInterface::loadModel(ModelType type, const std::string& modelPath) {
         instance.config.type = type;
         instance.config.modelPath = modelPath;
 
-        // Try loading as Torch model first
+        bool loaded = false;
+
+#if defined(ENABLE_TORCH)
+        // Try loading as Torch model first (if enabled)
         try {
-            instance.torchModel = torch::jit::load(modelPath);
+            auto module = torch::jit::load(modelPath);
+            instance.torchModel = std::make_shared<torch::jit::script::Module>(std::move(module));
             instance.isLoaded = true;
+            loaded = true;
             std::cout << "Loaded Torch model: " << modelPath << std::endl;
         } catch (const std::exception& e) {
             std::cout << "Failed to load as Torch model: " << e.what() << std::endl;
+        }
+#endif
 
-            // Try loading as ONNX model
+#if defined(ENABLE_ONNX)
+        if (!loaded) {
+            // Try loading as ONNX model (if enabled)
             try {
                 Ort::SessionOptions sessionOptions;
                 sessionOptions.SetIntraOpNumThreads(threadCount);
@@ -43,13 +52,19 @@ bool AIModelInterface::loadModel(ModelType type, const std::string& modelPath) {
                 // Precision handling note: ONNX Runtime expects model/tensor dtypes.
                 // Here we keep input as float (FP32). FP16/INT8 would require model conversion.
 
-                instance.onnxSession = Ort::Session(env, modelPath.c_str(), sessionOptions);
+                instance.onnxSession = std::make_unique<Ort::Session>(env, modelPath.c_str(), sessionOptions);
                 instance.isLoaded = true;
+                loaded = true;
                 std::cout << "Loaded ONNX model: " << modelPath << std::endl;
             } catch (const std::exception& e) {
                 std::cout << "Failed to load as ONNX model: " << e.what() << std::endl;
-                return false;
             }
+        }
+#endif
+
+        if (!loaded) {
+            std::cout << "No AI backends enabled or model failed to load: " << modelPath << std::endl;
+            return false;
         }
 
         models[type] = instance;
@@ -76,11 +91,16 @@ AIModelInterface::ProcessingResult AIModelInterface::processFrame(
     auto& model = it->second;
 
     try {
+#if defined(ENABLE_TORCH)
         if (model.torchModel) {
             result = processWithTorch(model, audioFrame, parameters);
-        } else if (model.onnxSession) {
+        }
+#endif
+#if defined(ENABLE_ONNX)
+        else if (model.onnxSession) {
             result = processWithONNX(model, audioFrame, parameters);
         }
+#endif
     } catch (const std::exception& e) {
         std::cerr << "Error processing frame: " << e.what() << std::endl;
     }
@@ -88,6 +108,7 @@ AIModelInterface::ProcessingResult AIModelInterface::processFrame(
     return result;
 }
 
+#if defined(ENABLE_TORCH)
 AIModelInterface::ProcessingResult AIModelInterface::processWithTorch(
     ModelInstance& model, const std::vector<float>& audioFrame,
     const std::map<std::string, float>& parameters) {
@@ -118,7 +139,7 @@ AIModelInterface::ProcessingResult AIModelInterface::processWithTorch(
         }
 
         // Run inference
-        auto output = model.torchModel.forward(inputs);
+        auto output = model.torchModel->forward(inputs);
 
         if (output.isTensor()) {
             auto outputTensor = output.toTensor();
@@ -138,7 +159,9 @@ AIModelInterface::ProcessingResult AIModelInterface::processWithTorch(
 
     return result;
 }
+#endif
 
+#if defined(ENABLE_ONNX)
 AIModelInterface::ProcessingResult AIModelInterface::processWithONNX(
     ModelInstance& model, const std::vector<float>& audioFrame,
     const std::map<std::string, float>& parameters)
@@ -155,14 +178,14 @@ AIModelInterface::ProcessingResult AIModelInterface::processWithONNX(
         std::array<int64_t, 2> inputShape { 1, (int64_t)inputPadded.size() };
 
         Ort::AllocatorWithDefaultOptions allocator;
-        size_t numInputs = model.onnxSession.GetInputCount();
-        size_t numOutputs = model.onnxSession.GetOutputCount();
+        size_t numInputs = model.onnxSession->GetInputCount();
+        size_t numOutputs = model.onnxSession->GetOutputCount();
 
         const char* inputName = nullptr;
         std::vector<const char*> inputNames;
         for (size_t i = 0; i < numInputs; ++i)
         {
-            auto name = model.onnxSession.GetInputNameAllocated(i, allocator);
+            auto name = model.onnxSession->GetInputNameAllocated(i, allocator);
             inputNames.push_back(name.get());
             if (i == 0) inputName = name.get();
         }
@@ -170,7 +193,7 @@ AIModelInterface::ProcessingResult AIModelInterface::processWithONNX(
         std::vector<const char*> outputNames;
         for (size_t i = 0; i < numOutputs; ++i)
         {
-            auto name = model.onnxSession.GetOutputNameAllocated(i, allocator);
+            auto name = model.onnxSession->GetOutputNameAllocated(i, allocator);
             outputNames.push_back(name.get());
         }
 
@@ -192,7 +215,7 @@ AIModelInterface::ProcessingResult AIModelInterface::processWithONNX(
         }
 
         // Run
-        auto outputValues = model.onnxSession.Run(Ort::RunOptions{ nullptr }, inputNames.data(), inputs.data(), inputs.size(), outputNames.data(), outputNames.size());
+        auto outputValues = model.onnxSession->Run(Ort::RunOptions{ nullptr }, inputNames.data(), inputs.data(), inputs.size(), outputNames.data(), outputNames.size());
 
         if (!outputValues.empty() && outputValues[0].IsTensor())
         {
@@ -214,6 +237,7 @@ AIModelInterface::ProcessingResult AIModelInterface::processWithONNX(
     result.processingTime = std::chrono::duration<double>(endTime - startTime).count();
     return result;
 }
+#endif
 
 // Utility and management methods
 bool AIModelInterface::isModelLoaded(ModelType type) const {

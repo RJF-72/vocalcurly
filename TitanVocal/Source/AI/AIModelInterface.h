@@ -6,9 +6,15 @@
 // Description: Abstraction for TorchScript and ONNX Runtime models used in TitanVocal.
 #pragma once
 
-#include <JuceHeader.h>
+#if defined(ENABLE_TORCH)
+#include <c10/util/Optional.h> // ensure c10::nullopt is visible before JUCE or std
+using c10::nullopt; // prefer c10::nullopt for LibTorch optional functions
 #include <torch/script.h>
+#endif
+#if defined(ENABLE_ONNX)
 #include <onnxruntime_cxx_api.h>
+#endif
+#include <JuceHeader.h>
 #include <vector>
 #include <memory>
 
@@ -68,22 +74,34 @@ public:
 private:
     struct ModelInstance {
         ModelConfig config;
-        torch::jit::script::Module torchModel;
-        Ort::Session onnxSession;
+        // Pointers guarded by feature flags so the header compiles without the libraries
+#if defined(ENABLE_TORCH)
+        std::shared_ptr<torch::jit::script::Module> torchModel; // valid when a Torch model is loaded
+#endif
+#if defined(ENABLE_ONNX)
+        std::unique_ptr<Ort::Session> onnxSession; // valid when an ONNX model is loaded
+#endif
         bool isLoaded = false;
     };
 
     std::map<ModelType, ModelInstance> models;
+    // ONNX environment only when ONNX is enabled
+#if defined(ENABLE_ONNX)
     Ort::Env env{ ORT_LOGGING_LEVEL_WARNING, "TitanVocal" };
+#endif
     bool useGPU = false;
     int threadCount = 4;
     int precision = 0;
 
     // Processing methods
+#if defined(ENABLE_TORCH)
     ProcessingResult processWithTorch(ModelInstance& model, const std::vector<float>& audioFrame,
                                      const std::map<std::string, float>& parameters);
+#endif
+#if defined(ENABLE_ONNX)
     ProcessingResult processWithONNX(ModelInstance& model, const std::vector<float>& audioFrame,
                                     const std::map<std::string, float>& parameters);
+#endif
 
     // Utility functions
     std::vector<float> preprocessAudio(const std::vector<float>& audio, int targetSize);

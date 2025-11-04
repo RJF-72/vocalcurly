@@ -12,13 +12,15 @@
 #include "../Plugin/PluginProcessor.h"
 #include "SpectralDisplay.h"
 #include "ParameterControls.h"
+#include "Theme.h"
+#include <deque>
 
-class VocalCraftQuantumEditor : public juce::AudioProcessorEditor,
+class TitanVocalEditor : public juce::AudioProcessorEditor,
                                private juce::Timer,
                                private juce::Button::Listener {
 public:
-    VocalCraftQuantumEditor(VocalCraftQuantumProcessor&);
-    ~VocalCraftQuantumEditor() override;
+    TitanVocalEditor(TitanVocalProcessor&);
+    ~TitanVocalEditor() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
@@ -37,7 +39,8 @@ public:
     void toggleAdvancedMode(bool advanced);
 
 private:
-    VocalCraftQuantumProcessor& audioProcessor;
+    TitanVocalProcessor& audioProcessor;
+    TitanDarkLookAndFeel darkTheme;
 
     // Main components
     std::unique_ptr<SpectralDisplay> spectralDisplay;
@@ -50,6 +53,10 @@ private:
     juce::ToggleButton aiEnabledToggle { "AI" };
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> aiEnabledAttachment;
 
+    // AI model selection
+    juce::ComboBox aiModelBox;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> aiModelAttachment;
+
     // UI Sections
     juce::TabbedComponent mainTabs;
 
@@ -60,11 +67,13 @@ private:
     juce::TextButton advancedModeButton;
     juce::ComboBox presetSelector;
     juce::TextButton loadPresetButton, savePresetButton;
+    juce::TextButton loadDefaultPresetButton;
     juce::TextButton aiAssistantButton;
 
     // Metering
     juce::Slider inputMeter, outputMeter;
     juce::Label inputLabel, outputLabel;
+    juce::Label statusBar;
 
     void timerCallback() override;
     void buttonClicked(juce::Button* button) override;
@@ -78,10 +87,15 @@ private:
     void updateMeters();
     void loadPreset();
     void savePreset();
+    void loadDefaultPreset();
     void showAIAssistant();
+    void setStatus(const juce::String& text);
 
     // Helpers
     void initializeDisplayModeSelector();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VocalCraftQuantumEditor)
+    // Keep an active FileChooser alive for async operations
+    std::unique_ptr<juce::FileChooser> activeFileChooser;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TitanVocalEditor)
 };

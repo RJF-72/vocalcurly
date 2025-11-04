@@ -1,0 +1,16 @@
+Third-Party Notices
+
+This project may use or depend on the following third-party components:
+
+- JUCE (https://juce.com)
+  License: GPLv3 or Commercial (dual-licensed). Use of JUCE under GPLv3 requires distributing derivative works under GPLv3. Proprietary use requires a valid JUCE commercial license from SoundStack Ltd. (JUCE).
+
+- LibTorch / PyTorch (https://pytorch.org)
+  License: BSD-style license. See the PyTorch license and notices for details.
+
+- ONNX Runtime (https://onnxruntime.ai)
+  License: MIT License.
+
+Your use and distribution of builds that include these components must comply with their respective licenses. This repository does not grant any rights beyond those provided by the third-party licenses. If you incorporate JUCE via FetchContent under GPL, you must comply with GPLv3 obligations; otherwise obtain a commercial JUCE license for proprietary distribution.
+
+If you redistribute this software or any build artifacts, include this NOTICE.txt and the relevant third‑party licenses.

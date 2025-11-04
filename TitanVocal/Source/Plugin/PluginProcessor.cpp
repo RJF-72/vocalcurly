@@ -7,7 +7,7 @@
 #include "PluginProcessor.h"
 #include "../GUI/PluginEditor.h"
 
-VocalCraftQuantumProcessor::VocalCraftQuantumProcessor()
+TitanVocalProcessor::TitanVocalProcessor()
     : juce::AudioProcessor(BusesProperties().withInput("Input", juce::AudioChannelSet::stereo(), true)
                                               .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts(*this, nullptr, "Parameters", createParameterLayout())
@@ -15,9 +15,9 @@ VocalCraftQuantumProcessor::VocalCraftQuantumProcessor()
     // Default latency to frame size when AI is enabled (updated in prepareToPlay)
 }
 
-VocalCraftQuantumProcessor::~VocalCraftQuantumProcessor() = default;
+TitanVocalProcessor::~TitanVocalProcessor() = default;
 
-void VocalCraftQuantumProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void TitanVocalProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     juce::ignoreUnused(samplesPerBlock);
     currentSampleRate = sampleRate;
@@ -30,13 +30,23 @@ void VocalCraftQuantumProcessor::prepareToPlay(double sampleRate, int samplesPer
     // Initialize AI buffers
     for (int ch = 0; ch < 2; ++ch) { aiInputDeque[ch].clear(); aiOutputDeque[ch].clear(); }
     setLatencySamples(aiFrameSize);
+
+    // Attempt to load default model if present based on selected model type
+    auto modelType = getSelectedModelType();
+    juce::File modelsDir = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile("Resources").getChildFile("Models");
+    juce::File defaultOnnx = modelsDir.getChildFile("default.onnx");
+    juce::File defaultTorch = modelsDir.getChildFile("default.pt");
+    if (defaultOnnx.existsAsFile())
+        aiInterface.loadModel(modelType, defaultOnnx.getFullPathName().toStdString());
+    else if (defaultTorch.existsAsFile())
+        aiInterface.loadModel(modelType, defaultTorch.getFullPathName().toStdString());
 }
 
-void VocalCraftQuantumProcessor::releaseResources()
+void TitanVocalProcessor::releaseResources()
 {
 }
 
-bool VocalCraftQuantumProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool TitanVocalProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
     const auto& out = layouts.getMainOutputChannelSet();
     const auto& in = layouts.getMainInputChannelSet();
@@ -46,7 +56,7 @@ bool VocalCraftQuantumProcessor::isBusesLayoutSupported(const BusesLayout& layou
     return true;
 }
 
-void VocalCraftQuantumProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
+void TitanVocalProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
 {
     juce::ignoreUnused(midi);
     juce::ScopedNoDenormals noDenormals;
@@ -99,10 +109,14 @@ void VocalCraftQuantumProcessor::processBlock(juce::AudioBuffer<float>& buffer, 
         }
 
         // Formant filters
-        juce::dsp::AudioBlock<float> block (&processed[0], 1, (size_t) processed.size());
+        juce::AudioBuffer<float> tempBuffer (1, (int) processed.size());
+        tempBuffer.copyFrom(0, 0, processed.data(), (int) processed.size());
+        juce::dsp::AudioBlock<float> block (tempBuffer);
         juce::dsp::ProcessContextReplacing<float> ctx (block);
         for (int i = 0; i < 3; ++i)
             formantFilters[juce::jmin(ch, 1)][i].process(ctx);
+        const float* procPtr = tempBuffer.getReadPointer(0);
+        std::copy(procPtr, procPtr + tempBuffer.getNumSamples(), processed.begin());
 
         // Noise gate (simple): threshold scales with noiseAmt
         const float baseThresh = 0.02f; // base threshold
@@ -142,7 +156,7 @@ void VocalCraftQuantumProcessor::processBlock(juce::AudioBuffer<float>& buffer, 
                     { "noiseAmount", noiseAmt },
                     { "saturation", satAmt },
                 };
-                auto result = aiInterface.processFrame(aiDefaultModel, frame, aiParams);
+                auto result = aiInterface.processFrame(getSelectedModelType(), frame, aiParams);
                 const auto& out = result.success && !result.processedAudio.empty() ? result.processedAudio : frame;
                 for (auto v : out) aiOutputDeque[juce::jmin(ch, 1)].push_back(v);
             }
@@ -169,19 +183,19 @@ void VocalCraftQuantumProcessor::processBlock(juce::AudioBuffer<float>& buffer, 
     spectralAnalyzer.computeSpectrum();
 }
 
-juce::AudioProcessorEditor* VocalCraftQuantumProcessor::createEditor()
+juce::AudioProcessorEditor* TitanVocalProcessor::createEditor()
 {
-    return new VocalCraftQuantumEditor(*this);
+    return new TitanVocalEditor(*this);
 }
 
-void VocalCraftQuantumProcessor::getStateInformation(juce::MemoryBlock& destData)
+void TitanVocalProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     auto state = apvts.copyState();
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
     copyXmlToBinary (*xml, destData);
 }
 
-void VocalCraftQuantumProcessor::setStateInformation(const void* data, int sizeInBytes)
+void TitanVocalProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
     if (xmlState.get() != nullptr)
@@ -191,7 +205,7 @@ void VocalCraftQuantumProcessor::setStateInformation(const void* data, int sizeI
     }
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout VocalCraftQuantumProcessor::createParameterLayout()
+juce::AudioProcessorValueTreeState::ParameterLayout TitanVocalProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
@@ -206,10 +220,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout VocalCraftQuantumProcessor::
     // AI toggle (0: off, 1: on)
     params.push_back(std::make_unique<juce::AudioParameterBool>("aiEnabled", "AI Enabled", false));
 
+    // AI model selection
+    juce::StringArray modelChoices { "Noise Reduction", "Pitch Correction", "Formant Repair", "Breath Control", "Voice Morphing", "Timing Correction" };
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("aiModelType", "AI Model", modelChoices, 0));
+
     return { params.begin(), params.end() };
 }
 
-void VocalCraftQuantumProcessor::updateFormantFilters(float semitoneShift)
+// JUCE plugin entry point factory is defined in CreateFilter.cpp
+
+void TitanVocalProcessor::updateFormantFilters(float semitoneShift)
 {
     // Base formant centers (Hz)
     const float F1 = 500.0f;
@@ -221,8 +241,24 @@ void VocalCraftQuantumProcessor::updateFormantFilters(float semitoneShift)
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        *formantFilters[ch][0].coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(currentSampleRate, shifted(F1), Q, 1.5f);
-        *formantFilters[ch][1].coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(currentSampleRate, shifted(F2), Q, 1.5f);
-        *formantFilters[ch][2].coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(currentSampleRate, shifted(F3), Q, 1.3f);
+        formantFilters[ch][0].coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(currentSampleRate, shifted(F1), Q, 1.5f);
+        formantFilters[ch][1].coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(currentSampleRate, shifted(F2), Q, 1.5f);
+        formantFilters[ch][2].coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(currentSampleRate, shifted(F3), Q, 1.3f);
+    }
+}
+
+AIModelInterface::ModelType TitanVocalProcessor::getSelectedModelType() const
+{
+    int idx = 0;
+    if (auto* p = apvts.getParameter("aiModelType")) idx = p->getValue();
+    switch (idx)
+    {
+        case 0: return AIModelInterface::NOISE_REDUCTION;
+        case 1: return AIModelInterface::PITCH_CORRECTION;
+        case 2: return AIModelInterface::FORMANT_REPAIR;
+        case 3: return AIModelInterface::BREATH_CONTROL;
+        case 4: return AIModelInterface::VOICE_MORPHING;
+        case 5: return AIModelInterface::TIMING_CORRECTION;
+        default: return AIModelInterface::NOISE_REDUCTION;
     }
 }

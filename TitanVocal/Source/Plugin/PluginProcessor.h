@@ -10,11 +10,11 @@
 #include "../DSP/SpectralAnalyzer.h"
 #include "../AI/AIModelInterface.h"
 
-class VocalCraftQuantumProcessor : public juce::AudioProcessor
+class TitanVocalProcessor : public juce::AudioProcessor
 {
 public:
-    VocalCraftQuantumProcessor();
-    ~VocalCraftQuantumProcessor() override;
+    TitanVocalProcessor();
+    ~TitanVocalProcessor() override;
 
     // AudioProcessor overrides
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -25,7 +25,7 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
 
-    const juce::String getName() const override { return "VocalCraftQuantum"; }
+    const juce::String getName() const override { return "TitanVocal"; }
     bool acceptsMidi() const override { return false; }
     bool producesMidi() const override { return false; }
     bool isMidiEffect() const override { return false; }
@@ -61,6 +61,7 @@ private:
     juce::dsp::IIR::Filter<float> formantFilters[2][3];
 
     void updateFormantFilters(float semitoneShift);
+    AIModelInterface::ModelType getSelectedModelType() const;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VocalCraftQuantumProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TitanVocalProcessor)
 };
